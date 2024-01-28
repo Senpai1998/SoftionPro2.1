@@ -15,7 +15,7 @@ function CodigoVer() {
 
   const { handleSubmit } = useForm();
 
-  const {generalData} = useUserContext();
+  const {generalData,setAllData} = useUserContext();
 
   const onSubmit = (data) =>{
     console.log(data);

@@ -1,6 +1,7 @@
-import { useState} from "react";
+import { useEffect, useState} from "react";
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'universal-cookie';
+import { useUserContext } from "../context/UseContext";
 
 const cookies = new Cookies();
 
@@ -21,9 +22,6 @@ import SearchButton from "./SearchButton";
 
 const Sidebar = () => {
   const navigate = useNavigate();
-
-
-
   const [ShowMenu, setShowMenu] = useState(false);
   const [showItems,setShowItems] = useState(true);
   const Menus = ['cerrar sesion'];
@@ -31,11 +29,12 @@ const Sidebar = () => {
   const clases = document.getElementById('engranaje');
   const [isopen,setIsopen] = useState(false);
   const [project,setProject] = useState([]);
-  const [search, setSearch] = useState({});
-  const [newProject, setNewProject] =  useState([]);
+  const [searchProject, setSearchProject] = useState([])
+  const [search, setSearch] = useState('');
+  const [newProject, setNewProject] =  useState('');
   const [isSelect, setIsSelect] =  useState(false);
-  
 
+  
  
 
   const girar=()=>{
@@ -49,15 +48,11 @@ const Sidebar = () => {
   }
 
   const cerrarSesion= async ()=>{
-     await cookies.remove("x-access-user")
+     cookies.remove("x-access-user")
      navigate("/")
   }
 
-  const addProject=()=>{
-    setIsopen(false)
-    const largo = project.length;
-    setProject([...project, `Project${largo}`])
-  }
+
 
   
   const ocularCosas=()=>{
@@ -69,20 +64,60 @@ const Sidebar = () => {
 
   const searchSubmit = (e) =>{
     e.preventDefault();
-    console.log(search)
+    console.log(search);
+    if(search===''){
+      setSearchProject(project)
+    }
+    else{
+      const filtro = project.filter(proyectos => proyectos.nameProject === search)
+      console.log(filtro)
+      setSearchProject(filtro)
+    }
   }
 
 
   const handleChange = (e) => {
-    setSearch({
-      ...search,
-      [e.target.name] : e.target.value
-    })
+    setSearch(e.target.value)
   }
 
-  const handleSubmitProject = (e) =>{
+  const handleSubmitProject = async (e) =>{
+      
+      
+      const resp = await fetch("http://localhost:4000/api/projects",{
+        headers:{
+          "Content-Type":"application/json",
+          "x-access-token":cookies.get("x-access-user")
+        },
+        method:"POST",
+        body:JSON.stringify({"nameProject":newProject})
+      })
+      console.log(resp)
+      const parse = await resp.json();
+
+      console.log(parse)
+      
+    }
+  
+
+
+    useEffect(() => {
+      const getData = async() =>{
+        const datos = await fetch('http://localhost:4000/api/projects',{
+          headers:{
+            "Content-Type":"application/json",
+            "x-access-token":cookies.get("x-access-user")
+          },
+          method:"GET"
+        })
+        const parse = await datos.json();
+        console.log(parse)
+        console.log("hola")
+        setProject(parse)
+        setSearchProject(parse)
+      }
+      getData()
+    }, [])
     
-  }
 
   return (
     <>
@@ -138,31 +173,31 @@ const Sidebar = () => {
               {
                 isopen &&(
                       <div className="fixed inset-0 backdrop-blur-sm flex justify-center items-center ">
-                        <div className="bg-white p-5 rounded flex flex-col justify-center items-center gap-5">
+                        <form onSubmit={handleSubmitProject} className="bg-white p-5 rounded flex flex-col justify-center items-center gap-5">
                             <div className="flex flex-col h-[100%] w-[100%] justify-around justify-items-center items-center flex-wrap md:flex-nowrap ml-4">
                               <label className=" text-black">
                                Escribe el nombre del proyecto
                               </label>
-                                <input id="tituloProject" type="text" className="w-64 px-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 duration-200" placeholder=" " />
+                                <input name="nameProject" id="nameProject" onChange={(e)=>{setNewProject(e.target.value)}} type="text" className="w-64 px-4 border-2 border-gray-300 rounded-lg text-black focus:outline-none focus:border-indigo-500 duration-200" placeholder=" " />
                                 <div className="flex gap-4 mt-3">
                                     <button className="flex bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={()=>setIsopen(false)}>Cancelar</button>
-                                    <button className="flex bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={addProject}>Crear Proyecto</button>
+                                    <button className="flex bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Crear Proyecto</button>
                                 </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 )
             }
             </div>
             <div id="hidden">
-            {project.forEach((p, index) => (
-              <a key={index} href={`/proyectos/${index}`} className='flex items-center gap-4 text-white py-2 px-6 rounded-xl hover:bg-primary-900/50 transition-colors'> 
-                 <RiCheckboxMultipleBlankLine/>{p}
-              </a>
+            {searchProject.map((p, index) => (
+              <button key={index} href={`/proyectos/${index}`} className='flex items-center gap-4 text-white py-2 px-6 rounded-xl hover:bg-primary-900/50 transition-colors'> 
+                 <RiCheckboxMultipleBlankLine/>{p.nameProject}
+              </button>
             ))}
             </div>
             <form onSubmit={handleSubmitProject} className="w-56 m-auto flex flex-col">
-              <input onChange={(e)=>{setNewProject({...newProject,[e.target.name]:e.target.value})}} type="text" name="newProject" id="newProject" className="text-center bg-transparent hover:bg-gray-500/10 text-white" placeholder="+" />
+              <input onChange={(e)=>{setNewProject(e.target.value)}} type="text" name="nameProject" id="nameProject" className="text-center bg-transparent hover:bg-gray-500/10 text-white" placeholder="+" />
             </form>
           </nav>
           <div className="content-end">  

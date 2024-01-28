@@ -57,7 +57,7 @@ function ResetPass() {
       const json = await response.json();
 
       cookies.set('x-access-user', json.token);
-
+    
       navigate('/App')
 
     }

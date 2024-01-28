@@ -1,16 +1,14 @@
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Head"
-import Contenido from './components/Contenido'
-import MigaPan from './components/migaPan'
-import List from "./components/List";
-import Ctarea from "./components/createTarea";
-import { Outlet } from "react-router-dom";
+import { useUserContext } from "./context/UseContext"
 
 function App() {
 
+  const {allData} = useUserContext();
+
+  console.log(allData)
+
   return (
    <>
-   <p>Hola bienvenido seas usuario nuevo  </p>
+   <p>Hola bienvenido seas  </p>
    </>
   )
 }

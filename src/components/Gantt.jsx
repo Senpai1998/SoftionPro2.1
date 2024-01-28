@@ -2,7 +2,7 @@ import React from 'react'
 
 function Gantt() {
   return (
-    <div>Gantt Actualizado por Yuhann</div>
+    <div>Gantt Actualizado por</div>
   )
 }
 
